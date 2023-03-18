@@ -80,7 +80,7 @@ def app():
 
     # Set app title and description
     st.set_page_config(page_title=__title__,
-                       page_icon=":memo:", layout="centered")
+                       page_icon=":memo:", layout="centered", menu_items=menu_items)
     st.title(__title__)
     st.write("Enter the details below to generate a blog post using OpenAI.")
 
