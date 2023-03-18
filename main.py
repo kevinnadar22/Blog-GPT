@@ -89,7 +89,7 @@ def app():
 
     title = st.text_input("Title", placeholder=title_placeholder)
     body_snippet = st.text_area(
-        "Body Snippet", placeholder=body_snippet_placeholder)
+        "Body Snippet (Optional)", placeholder=body_snippet_placeholder)
 
     # Generate blog post and display to user
     if st.button("Clear", key="clear_results"):
