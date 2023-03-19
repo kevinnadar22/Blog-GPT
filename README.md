@@ -8,6 +8,10 @@ Description
 
 The Blog Post Generator using OpenAI GPT-3.5 is a web application that makes use of OpenAI's cutting-edge language generation technology to generate unique blog posts on any topic. The user simply inputs a title and a few related keywords, and the application generates a unique blog post based on the input.
 
+<!-- Attach a image -->
+
+![Blog Post Generator using OpenAI GPT-3.5](https://i.ibb.co/VTGk5Qy/bloggpt.jpg)
+
 Usage
 -----
 
