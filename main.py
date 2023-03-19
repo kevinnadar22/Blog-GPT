@@ -5,17 +5,17 @@ __title__ = "Blog GPT"
 __author__ = "Kevin Nadar"
 
 
+from datetime import datetime
 import os
 import random
 import string
-
-import hydralit_components as hc
 import openai
 import streamlit as st
 
 # Authenticate with OpenAI API using your API key
 # (you can find your API key at https://openai.com/)
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv(
+    "OPENAI_API_KEY")
 
 # Define function to generate blog post
 menu_items = {
@@ -25,24 +25,23 @@ menu_items = {
 }
 
 
-def generate_blog_post(title, body_snippet=None):
+def generate_blog_post(title, body_snippet=None, length=300, num_samples=1) -> list:
     # Set up the prompt for OpenAI
     prompt = f"Write a blog post titled '{title}'"
     if body_snippet:
         prompt += f" with the following body snippet: '{body_snippet}'"
     prompt += "."
-    prompt += "If this doesn't seems like a blog post title or body snippet, simply reply with exactly 'Error'"
-    prompt += "The post should be at least 300 words long"
-
-    # Call OpenAI API to generate blog post
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-    )
-    # Extract the generated text from the response
-    generated_text = response.choices[0].message.content
-
-    return generated_text
+    prompt += "If inputs doesn't seems like blog post title or body snippet, simply reply with exactly 'Error'"
+    prompt += f"The post should be at least {length} words long"
+    for i in range(num_samples):
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        generated_text_ = ""
+        generated_text_ += f"\n\n### Variant {i+1} of {num_samples}"
+        generated_text_ += response.choices[0].message.content
+        yield generated_text_
 
 
 def download_button(generated_text):
@@ -82,6 +81,11 @@ def app():
     st.set_page_config(page_title=__title__,
                        page_icon=":memo:", layout="centered", menu_items=menu_items)
     st.title(__title__)
+    st.sidebar.title("Customize Settings")
+    length = st.sidebar.slider(
+        "Blog Post Length", min_value=100, max_value=1000, value=500, step=50)
+    num_posts = st.sidebar.slider(
+        "Number of Blog Posts", min_value=1, max_value=5, value=1)
     st.write("Enter the details below to generate a blog post using OpenAI.")
 
     title_placeholder = "Bitcoin is the future"
@@ -101,25 +105,43 @@ def app():
         else:
             st.empty()
             # with st.spinner("Generating blog post..."):
-            with hc.HyLoader('<h4>This may take a few minutes<h4>', hc.Loaders.standard_loaders, index=3, height=100):
+            with st.spinner("Generating blog post, This may take a while..."):
+                st.caption(
+                    "Don't close the tab, it will take some time to generate the blog post. (It may take upto 1 minute to generate the blog post.)")
+                now = datetime.now()
                 try:
-                    generated_text = generate_blog_post(title, body_snippet)
+                    res: list = generate_blog_post(
+                        title, body_snippet, length, num_posts)
+
+                    st.markdown(f"## {title}", unsafe_allow_html=True)
+                    i = 1
+                    generated_text = ""
+                    for text in res:
+                        if "Error" in text:
+                            text = text.replace(
+                                "Error", "`Something went wrong`")
+                        # Define the content to be displayed
+                        st.write(text, unsafe_allow_html=True)
+                        generated_text += text
+                        i += 1
+
                 except Exception as e:
                     print(e)
                     st.error(
                         "An error occurred while generating the blog post. Please try again later.")
                     return
 
-                if "error" in generated_text.lower():
-                    st.error(
-                        "Trye again with a different proper title or body snippet.")
                 else:
-                    st.success("Blog post generated successfully!")
-                    # Define the content to be displayed
-                    st.markdown(f"## {title}", unsafe_allow_html=True)
-                    st.write(generated_text)
+
+                    end_time = datetime.now()
+                    time_taken = end_time - now
+                    st.success(
+                        f"Blog post generated successfully! - Time Taken: {time_taken.total_seconds()} seconds")
                     post_process_text(generated_text)
                     st.balloons()
+
+    st.markdown('---')
+    st.markdown('Created by [Kevin](https://github.com/kevinnadar22)')
 
 
 # Run the app
